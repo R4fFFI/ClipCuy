@@ -3,8 +3,8 @@ import subprocess
 from pathlib import Path
 from typing import Optional
 
-from backend.config import TEMP_DIR
-from backend.utils import generate_id, validate_youtube_url
+from backend.config import TEMP_DIR, FFMPEG_BIN
+from backend.utils import generate_id, validate_youtube_url, parse_timestamp
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,10 @@ def download_clip(
     if not validate_youtube_url(url):
         raise ValueError(f"Invalid YouTube URL: {url}")
 
-    duration = end_seconds - start_seconds
+    start_sec_int = int(start_seconds)
+    end_sec_int = int(end_seconds)
+
+    duration = end_sec_int - start_sec_int
     if duration <= 0:
         raise ValueError("end_time must be greater than start_time")
 
@@ -29,15 +32,21 @@ def download_clip(
     cmd = [
         "yt-dlp",
         "--no-warnings",
+        "--no-check-certificates",
         "--format", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "--download-sections", f"*{start_seconds}-{end_seconds}",
+        "--download-sections", f"*{start_sec_int}-{end_sec_int}",
         "--force-keyframes-at-cuts",
         "--merge-output-format", "mp4",
         "--output", str(output_path),
-        url,
     ]
 
-    logger.info("Downloading clip: %s [%.1f-%.1f]", url, start_seconds, end_seconds)
+    ffmpeg_path = Path(FFMPEG_BIN)
+    if ffmpeg_path.parent != Path(".") and ffmpeg_path.parent.exists():
+        cmd.extend(["--ffmpeg-location", str(ffmpeg_path.parent)])
+
+    cmd.append(url)
+
+    logger.info("Downloading clip: %s [%d-%d]", url, start_sec_int, end_sec_int)
 
     try:
         result = subprocess.run(

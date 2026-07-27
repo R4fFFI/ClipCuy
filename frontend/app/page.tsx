@@ -47,7 +47,10 @@ export default function Home() {
     setLoading(true);
     try {
       const res = await createPreview(url, startTime, endTime);
-      setPreviewUrl(res.preview_url);
+      const fullPreviewUrl = res.preview_url.startsWith("http")
+        ? res.preview_url
+        : `http://localhost:8000${res.preview_url}`;
+      setPreviewUrl(fullPreviewUrl);
       setClipPath(res.clip_path);
       setStep("caption");
     } catch (e: unknown) {
@@ -115,7 +118,10 @@ export default function Home() {
         fd.append("ass_path", assPath);
       }
       const res = await renderVideo(fd);
-      setDownloadUrl(res.download_url);
+      const fullDownloadUrl = res.download_url.startsWith("http")
+        ? res.download_url
+        : `http://localhost:8000${res.download_url}`;
+      setDownloadUrl(fullDownloadUrl);
       setStep("done");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Render failed");

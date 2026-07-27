@@ -1,4 +1,4 @@
-const API_BASE = "";
+const API_BASE = "http://localhost:8000";
 
 export interface PreviewResponse {
   preview_url: string;
@@ -22,6 +22,23 @@ export interface RenderResponse {
   output_path: string;
 }
 
+async function handleResponseError(res: Response, defaultMessage: string) {
+  const err = await res.json().catch(() => null);
+  let errMsg = defaultMessage;
+  if (err && err.detail) {
+    if (typeof err.detail === "string") {
+      errMsg = err.detail;
+    } else if (Array.isArray(err.detail)) {
+      errMsg = err.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ");
+    } else {
+      errMsg = JSON.stringify(err.detail);
+    }
+  } else {
+    errMsg = `HTTP ${res.status}: ${res.statusText || "Unknown Error"}`;
+  }
+  throw new Error(errMsg);
+}
+
 export async function createPreview(
   url: string,
   startTime: string,
@@ -33,8 +50,7 @@ export async function createPreview(
     body: JSON.stringify({ url, start_time: startTime, end_time: endTime }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Request failed" }));
-    throw new Error(err.detail || `HTTP ${res.status}`);
+    await handleResponseError(res, "Preview request failed");
   }
   return res.json();
 }
@@ -49,8 +65,7 @@ export async function generateCaption(
     body: JSON.stringify({ clip_path: clipPath, model_size: modelSize }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Caption failed" }));
-    throw new Error(err.detail || `HTTP ${res.status}`);
+    await handleResponseError(res, "Caption generation failed");
   }
   return res.json();
 }
@@ -66,8 +81,7 @@ export async function editCaption(
     body: JSON.stringify({ words, font_name: fontName, font_size: fontSize }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Edit failed" }));
-    throw new Error(err.detail || `HTTP ${res.status}`);
+    await handleResponseError(res, "Editing captions failed");
   }
   return res.json();
 }
@@ -78,8 +92,7 @@ export async function renderVideo(formData: FormData): Promise<RenderResponse> {
     body: formData,
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Render failed" }));
-    throw new Error(err.detail || `HTTP ${res.status}`);
+    await handleResponseError(res, "Rendering video failed");
   }
   return res.json();
 }
