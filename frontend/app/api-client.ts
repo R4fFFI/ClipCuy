@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000";
+const API_BASE = typeof window !== "undefined" ? window.location.origin : "http://localhost:8000";
 
 export interface PreviewResponse {
   preview_url: string;
