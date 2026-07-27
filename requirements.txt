@@ -16,3 +16,4 @@ torchaudio==2.11.0
 cffi==2.1.0
 typing-extensions==4.16.0
 numpy==2.4.6
+static-ffmpeg==3.0

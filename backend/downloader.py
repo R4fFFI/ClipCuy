@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -30,7 +31,7 @@ def download_clip(
     output_path = target_dir / f"{clip_id}.mp4"
 
     cmd = [
-        "yt-dlp",
+        sys.executable, "-m", "yt_dlp",
         "--no-warnings",
         "--no-check-certificates",
         "--format", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",

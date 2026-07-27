@@ -4,6 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+try:
+    import static_ffmpeg
+    static_ffmpeg.add_paths()
+except Exception:
+    pass
+
 BASE_DIR = Path(__file__).resolve().parent
 TEMP_DIR = BASE_DIR / "temp"
 OUTPUT_DIR = BASE_DIR / "outputs"
